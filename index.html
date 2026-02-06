@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Operator Doctrine — Decision Training System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0A0B;
+    --surface: #141416;
+    --surface2: #1A1A1E;
+    --border: #1E1E22;
+    --border2: #2A2A2E;
+    --text: #E8E6E3;
+    --text2: #999;
+    --text3: #666;
+    --text4: #555;
+    --text5: #444;
+    --red: #DC3545;
+    --green: #28A745;
+    --yellow: #E8B931;
+    --purple: #7B68EE;
+    --blue: #17A2B8;
+    --orange: #FF6B35;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+  /* Header */
+  .header {
+    border-bottom: 1px solid #1A1A1E;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header h1 {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--text4);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+  .header-actions { display: flex; gap: 10px; }
+  .header-btn {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 8px 14px;
+    color: #888;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    transition: border-color 0.2s;
+  }
+  .header-btn:hover { border-color: #444; }
+  .header-btn.red {
+    background: #1A0A0A;
+    border-color: #3A1515;
+    color: var(--red);
+  }
+
+  /* Main */
+  .main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  /* Step label */
+  .step-label {
+    font-size: 11px;
+    color: var(--text4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .step-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .step-desc {
+    font-size: 13px;
+    color: var(--text3);
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  /* Archetype cards */
+  .archetype-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+  }
+  .arch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    color: var(--text);
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .arch-card:hover {
+    background: var(--surface2);
+  }
+  .arch-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .arch-icon { font-size: 24px; }
+  .arch-name { font-size: 14px; font-weight: 600; }
+  .arch-profile {
+    font-size: 12px;
+    color: #777;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .arch-skills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .arch-skill {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+
+  /* Inputs */
+  .input-label {
+    font-size: 11px;
+    color: var(--text4);
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 8px;
+  }
+  input[type="text"], textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 16px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    line-height: 1.5;
+  }
+  input[type="text"]::placeholder, textarea::placeholder { color: #444; }
+  textarea { resize: vertical; font-size: 13px; }
+
+  /* Buttons */
+  .btn {
+    border: none;
+    border-radius: 8px;
+    padding: 14px 28px;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text);
+  }
+  .btn-back {
+    background: none;
+    border: none;
+    color: var(--text4);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 0;
+    margin-bottom: 24px;
+  }
+  .btn-back:hover { color: var(--text3); }
+
+  /* Prompt box */
+  .prompt-box {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .prompt-label {
+    font-size: 11px;
+    color: var(--text4);
+    letter-spacing: 0.08em;
+  }
+  .copy-btn {
+    background: var(--surface2);
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 6px 14px;
+    cursor: pointer;
+    color: var(--text2);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .copy-btn.copied {
+    background: #28A74530;
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .prompt-content {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: inherit;
+  }
+
+  /* Brief card */
+  .brief-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+  .brief-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .brief-icon { font-size: 28px; }
+  .brief-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+  .rule-box {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #1A1A1E;
+    margin-bottom: 20px;
+  }
+  .rule-label {
+    font-size: 11px;
+    color: var(--text4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .rule-text { font-size: 15px; line-height: 1.5; }
+  .traps-label {
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .trap-item {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  /* Suggested rules */
+  .toggle-btn {
+    background: none;
+    border: none;
+    color: var(--text4);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    padding: 0;
+  }
+  .toggle-btn:hover { color: var(--text3); }
+  .suggested-rules {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .rule-option {
+    background: #0F0F11;
+    border: 1px solid #1A1A1E;
+    border-radius: 6px;
+    padding: 10px 14px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text2);
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.4;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .rule-option:hover, .rule-option.selected {
+    background: #1A1A2E;
+    border-color: #7B68EE40;
+  }
+
+  /* Rep info bar */
+  .rep-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .rep-label {
+    font-size: 11px;
+    color: var(--text4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .rep-arch { margin-left: 12px; font-size: 13px; }
+
+  /* Notes area */
+  .notes-section { margin-bottom: 24px; }
+
+  /* Button row */
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* Completion */
+  .complete-wrap { text-align: center; padding-top: 60px; }
+  .complete-check { font-size: 48px; margin-bottom: 24px; }
+  .complete-title { font-size: 22px; font-weight: 600; margin-bottom: 12px; }
+  .complete-sub { font-size: 14px; color: var(--text3); margin-bottom: 8px; }
+  .complete-detail {
+    font-size: 13px;
+    color: var(--text5);
+    margin-bottom: 40px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .complete-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* Ledger page */
+  .ledger-input-row { display: flex; gap: 8px; margin-bottom: 32px; }
+  .ledger-input-row input { flex: 1; padding: 12px 16px; font-size: 13px; }
+  .ledger-add-btn {
+    background: var(--red);
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .ledger-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+  .ledger-text { font-size: 14px; line-height: 1.6; }
+  .ledger-meta { display: flex; gap: 16px; margin-top: 10px; }
+  .ledger-meta span { font-size: 11px; color: var(--text4); }
+  .empty-msg { color: var(--text5); font-size: 13px; font-style: italic; }
+
+  /* Session history entry */
+  .session-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+  .session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .session-arch { font-size: 14px; font-weight: 600; }
+  .session-date { font-size: 11px; color: var(--text4); }
+  .session-rule { font-size: 12px; color: #888; margin-bottom: 8px; }
+  .session-pm { font-size: 12px; color: var(--text3); line-height: 1.5; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .header { padding: 16px; }
+    .main { padding: 24px 16px; }
+    .archetype-grid { grid-template-columns: 1fr; }
+    .header-actions { width: 100%; }
+    .header-btn { flex: 1; text-align: center; }
+    .ledger-input-row { flex-direction: column; }
+    .step-title { font-size: 18px; }
+  }
+
+  /* Hidden */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<div class="header">
+  <div>
+    <h1>The Operator Doctrine</h1>
+    <div class="header-sub">DECISION TRAINING SYSTEM · WEEK <span id="weekDisplay">1</span>/12</div>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" id="historyBtn">HISTORY (<span id="sessionCount">0</span>)</button>
+    <button class="header-btn red" id="ledgerBtn">MISTAKE LEDGER (<span id="ledgerCount">0</span>)</button>
+  </div>
+</div>
+
+<!-- ─── MAIN CONTAINER ─── -->
+<div class="main">
+
+  <!-- ═══ PHASE: SELECT ═══ -->
+  <div id="phase-select">
+    <div class="step-label">Step 1</div>
+    <div class="step-title">Select Today's Opponent</div>
+    <div class="step-desc">Pick the archetype that exposes your weakest pattern. Not the one you're best at — the one that catches you.</div>
+    <div class="archetype-grid" id="archetypeGrid"></div>
+  </div>
+
+  <!-- ═══ PHASE: RULE ═══ -->
+  <div id="phase-rule" class="hidden">
+    <button class="btn-back" id="backToSelect">← Change archetype</button>
+    <div class="step-label">Step 2</div>
+    <div class="step-title">Set Today's Decision Rule</div>
+    <div class="step-desc">One rule. Not two. The rule you'll install today against <span id="ruleArchName" style="font-weight:600"></span>.</div>
+
+    <div style="margin-bottom:24px">
+      <label class="input-label">IF [TRIGGER], THEN I [ACTION]</label>
+      <input type="text" id="ruleInput" placeholder="If they hesitate, I wait 3 seconds before speaking">
+    </div>
+
+    <div style="margin-bottom:32px">
+      <button class="toggle-btn" id="toggleRules">Show suggested rules ↓</button>
+      <div class="suggested-rules hidden" id="suggestedRules"></div>
+    </div>
+
+    <button class="btn hidden" id="lockRuleBtn" style="background:var(--purple)">LOCK IN RULE →</button>
+  </div>
+
+  <!-- ═══ PHASE: BRIEF ═══ -->
+  <div id="phase-brief" class="hidden">
+    <div class="brief-card">
+      <div class="brief-header">
+        <span class="brief-icon" id="briefIcon"></span>
+        <div>
+          <div id="briefName" style="font-size:18px;font-weight:600"></div>
+          <div class="brief-sub" id="briefSub"></div>
+        </div>
+      </div>
+      <div class="rule-box">
+        <div class="rule-label">TODAY'S RULE</div>
+        <div class="rule-text" id="briefRule"></div>
+      </div>
+      <div>
+        <div class="traps-label">TRAPS TO WATCH FOR</div>
+        <div id="briefTraps"></div>
+      </div>
+    </div>
+    <button class="btn" id="genRepBtn"></button>
+  </div>
+
+  <!-- ═══ PHASE: ROLEPLAY ═══ -->
+  <div id="phase-roleplay" class="hidden">
+    <div class="rep-bar">
+      <div>
+        <span class="rep-label" id="repLabel"></span>
+        <span class="rep-arch" id="repArch"></span>
+      </div>
+    </div>
+
+    <div class="prompt-box">
+      <div class="prompt-header">
+        <span class="prompt-label">COPY THIS → PASTE INTO A NEW CLAUDE CHAT</span>
+        <button class="copy-btn" id="copyPromptBtn">COPY PROMPT</button>
+      </div>
+      <div class="prompt-content" id="promptContent"></div>
+    </div>
+
+    <div class="notes-section">
+      <label class="input-label">NOTES FROM THIS REP — What happened? Where did you break?</label>
+      <textarea id="repNotes" rows="3" placeholder="I started explaining when they said 'interesting'..."></textarea>
+    </div>
+
+    <div class="btn-row" id="repButtons"></div>
+  </div>
+
+  <!-- ═══ PHASE: POSTMORTEM ═══ -->
+  <div id="phase-postmortem" class="hidden">
+    <div class="step-label" style="color:var(--red)">Post-Mortem</div>
+    <div class="step-title">Diagnose the Failure</div>
+    <div class="step-desc">Copy this prompt into the same chat where you did the roleplay. The AI has the context to give you a real analysis.</div>
+
+    <div class="prompt-box">
+      <div class="prompt-header">
+        <span class="prompt-label">POST-MORTEM PROMPT</span>
+        <button class="copy-btn" id="copyPMBtn">COPY PROMPT</button>
+      </div>
+      <div class="prompt-content" id="pmContent"></div>
+    </div>
+
+    <div class="notes-section">
+      <label class="input-label">PASTE KEY FINDINGS FROM POST-MORTEM HERE</label>
+      <textarea id="pmNotes" rows="4" placeholder="What the AI diagnosed..."></textarea>
+    </div>
+
+    <button class="btn" id="genCleanBtn" style="background:var(--purple)">GENERATE CLEAN REP →</button>
+  </div>
+
+  <!-- ═══ PHASE: LEDGER ENTRY ═══ -->
+  <div id="phase-ledger" class="hidden">
+    <div class="step-label" style="color:var(--yellow)">Final Step</div>
+    <div class="step-title">Write Your Ledger Entry</div>
+    <div class="step-desc">One sentence. What you did wrong and what the rule demanded.</div>
+
+    <div style="margin-bottom:24px">
+      <input type="text" id="ledgerEntryInput" placeholder='I chased agreement when they said "interesting" instead of testing ownership'>
+    </div>
+
+    <button class="btn" id="completeBtn" style="background:var(--green)">SAVE & COMPLETE SESSION</button>
+  </div>
+
+  <!-- ═══ PHASE: COMPLETE ═══ -->
+  <div id="phase-complete" class="hidden">
+    <div class="complete-wrap">
+      <div class="complete-check">✓</div>
+      <div class="complete-title">Session Complete</div>
+      <div class="complete-sub" id="completeSub"></div>
+      <div class="complete-detail" id="completeDetail"></div>
+      <div class="complete-btns">
+        <button class="btn btn-secondary" id="newSessionBtn">NEW SESSION</button>
+        <button class="btn" id="reviewLedgerBtn" style="background:#1A0A0A;border:1px solid #3A1515;color:var(--red)">REVIEW LEDGER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAGE: LEDGER ═══ -->
+  <div id="page-ledger" class="hidden">
+    <button class="btn-back" id="backFromLedger">← Back</button>
+    <div class="step-title" style="color:var(--red);font-size:20px;letter-spacing:0.05em;text-transform:uppercase">Errors I Keep Repeating</div>
+    <div style="font-size:13px;color:var(--text4);margin-bottom:32px">Your personal syllabus</div>
+
+    <div class="ledger-input-row">
+      <input type="text" id="ledgerAddInput" placeholder="I [did X] when I should have [done Y]...">
+      <button class="ledger-add-btn" id="ledgerAddBtn">Add</button>
+    </div>
+    <div id="ledgerList"></div>
+  </div>
+
+  <!-- ═══ PAGE: HISTORY ═══ -->
+  <div id="page-history" class="hidden">
+    <button class="btn-back" id="backFromHistory">← Back</button>
+    <div class="step-title" style="color:var(--purple);font-size:20px;letter-spacing:0.05em;text-transform:uppercase">Session History</div>
+    <div style="font-size:13px;color:var(--text4);margin-bottom:32px" id="historySubline"></div>
+    <div id="historyList"></div>
+  </div>
+
+</div>
+
+<script>
+// ─── DATA ───
+const ARCHETYPES = [
+  {
+    id:"polite-time-waster", name:"The Polite Time-Waster", icon:"☕", color:"#E8B931",
+    skills:["Restraint","Disqualification","Neutrality"],
+    profile:"Friendly. Curious. No urgency. No ownership. Says 'send info'. Enjoys the conversation but has zero intention of acting.",
+    behavior:`You are a mid-level marketing manager at a 200-person company. You took this call because someone mentioned the product in a meeting and you were curious. You have NO authority to buy. You have NO budget allocated. There is NO active problem causing pain right now.
+
+YOUR BEHAVIOR RULES:
+- Be warm, friendly, and engaged throughout
+- Ask questions that sound like interest: "How does that work?" "That's interesting, tell me more" "What kind of results do other companies see?"
+- NEVER volunteer a specific problem you're trying to solve
+- If asked about pain or problems, give vague answers: "We could always improve" "There's room for optimization" "It's something we've discussed"
+- If asked who owns the decision, deflect: "It would be a team decision" "I'd need to loop in a few people"
+- If asked about timeline, say: "No rush, we're just exploring"
+- If asked about budget, say: "We haven't gotten that far yet"
+- Your go-to exit phrase is: "This is really helpful, could you send me some info?"
+- If the rep tries to disqualify you, get slightly MORE friendly to pull them back in
+- NEVER give a concrete next step with a specific person and date`,
+    traps:["Their friendliness will tempt you to keep talking","Their questions will feel like buying signals","'Send me info' will feel like progress","You'll want to educate them because they seem receptive"]
+  },
+  {
+    id:"interested-non-buyer", name:"The Interested Non-Buyer", icon:"📚", color:"#7B68EE",
+    skills:["Buyer identification","Authority framing"],
+    profile:"Loves the idea. Has no budget. Isn't the decision-maker. Wants to 'learn'. Will happily sit through a full demo and then disappear forever.",
+    behavior:`You are a junior analyst at a financial services firm. You genuinely find this product fascinating and you're enthusiastic about it. But you have ZERO purchasing authority and no budget control. Your manager doesn't know you're on this call.
+
+YOUR BEHAVIOR RULES:
+- Show genuine excitement: "This is exactly what we need!" "I've been saying we should do something like this"
+- Ask detailed feature questions that feel like evaluation
+- If asked about decision-making authority, minimize: "I have a lot of influence" "My manager trusts my recommendations"
+- If asked directly "Can you sign off on this?", dodge: "It would go through a process" "I'd present it to the team"
+- If asked about budget, say: "I'm sure we could find budget for the right solution"
+- NEVER admit you have no authority unless directly cornered with a specific yes/no question about signing contracts
+- If the rep tries to get to your manager, resist: "Let me handle that internally" "I want to understand it fully first before bringing others in"
+- The more the rep explains features, the more excited you get — this is the trap
+- You will NEVER convert to a meeting with a decision-maker voluntarily`,
+    traps:["Their enthusiasm will feel like qualification","You'll want to do a full demo because they're so engaged","'I have influence' will sound like authority","You'll avoid the awkward ownership question because the conversation feels good"]
+  },
+  {
+    id:"skeptical-operator", name:"The Skeptical Operator", icon:"🔒", color:"#DC3545",
+    skills:["Calm authority","Silence","Framing"],
+    profile:"Short answers. Distrustful. Been burned before. Busy. Will test whether you're worth their time in the first 15 seconds.",
+    behavior:`You are a VP of Operations at a logistics company. You've been burned by three vendors in the last two years who over-promised and under-delivered. You're busy and took this call reluctantly because your CEO asked you to evaluate options.
+
+YOUR BEHAVIOR RULES:
+- Give SHORT answers. One sentence maximum unless directly asked to elaborate.
+- Your default energy is skeptical and slightly impatient
+- If the rep gives a generic pitch, respond: "I've heard that before" or just "Okay"
+- If the rep asks an open-ended question, give the minimum: "Yeah" "It's fine" "We manage"
+- If the rep tries to build rapport, shut it down: "What do you need from me?"
+- HOWEVER: If the rep asks a genuinely sharp, specific question that shows they understand your world, you open up slightly
+- If the rep stays calm under your pressure and doesn't over-explain, you gradually give more
+- If the rep starts pitching or explaining features unprompted, you go cold: "I don't need the pitch"
+- If there's silence, you DO NOT fill it. You wait. This tests whether the rep can handle silence.
+- You have a real problem (vendor reliability causing missed SLAs) but you will NOT volunteer it. It must be diagnosed.`,
+    traps:["Their short answers will make you talk more to fill space","Their skepticism will trigger your urge to prove value","You'll want to pitch to overcome their resistance","Silence will feel like failure and you'll rush to fill it"]
+  },
+  {
+    id:"false-urgency", name:"The False Urgency Buyer", icon:"⚡", color:"#FF6B35",
+    skills:["Control","Timing"],
+    profile:"Wants to 'move fast'. Pushes next steps. Avoids detail. Doesn't clarify pain. Creates momentum that masks a lack of substance.",
+    behavior:`You are a newly promoted Head of Growth at a Series B startup. Your CEO wants results fast and you're trying to show initiative by evaluating tools quickly. But you haven't actually defined what problem you're solving or what success looks like.
+
+YOUR BEHAVIOR RULES:
+- Move fast in conversation: "Let's get to the point" "What's the timeline to get started?" "Can we do a trial this week?"
+- Push for next steps constantly: "Send me the contract" "Let's loop in my team tomorrow" "What's pricing?"
+- If asked about specific pain points, stay vague: "We need to level up" "Growth has stalled" "We need better tooling"
+- If asked what success looks like, deflect: "We'll know it when we see it" "More pipeline, obviously"
+- If the rep tries to slow down and diagnose, get slightly impatient: "I don't need a full discovery, I've done my research"
+- If pressed on specifics, pivot to timeline: "Look, we need something in place by end of quarter"
+- NEVER define a specific metric, specific problem owner, or specific consequence of inaction
+- The more the rep matches your speed, the faster you go — and the less substance emerges
+- If the rep holds firm and insists on clarity, you can respect that and slow down slightly`,
+    traps:["Their urgency will feel like a hot deal","You'll match their pace instead of controlling it","Pushing for next steps will feel like progress","You'll skip diagnosis because they seem ready to buy"]
+  },
+  {
+    id:"price-anchorer", name:"The Price Anchorer", icon:"💰", color:"#28A745",
+    skills:["Value framing","Inaction cost"],
+    profile:"Brings up cost early. Compares tools. Pushes discounts. Tries to commoditize you into a feature-and-price comparison.",
+    behavior:`You are a Finance Director evaluating tools for your sales team. You've already built a comparison spreadsheet with 4 competitors. You see all tools in this category as roughly equivalent and believe the decision comes down to price.
+
+YOUR BEHAVIOR RULES:
+- Bring up price within the first 2 minutes: "Before we go further, what's the ballpark cost?"
+- Compare constantly: "Competitor X does this for half the price" "We got quoted £X from [rival]"
+- Push for discounts: "What can you do on price?" "Is there a startup discount?" "What if we commit annually?"
+- If the rep talks about value, redirect to features: "But does it do X? Because [competitor] does"
+- Frame everything as a procurement exercise: "I need to present three options to the board"
+- If the rep tries to discuss business impact, tolerate it briefly then return to price: "That's great, but what does it cost?"
+- NEVER engage with questions about the cost of the current problem unless the rep frames it very specifically
+- If the rep avoids the price question, get suspicious: "Why won't you give me a number?"
+- If the rep successfully reframes around inaction cost or business impact with specific numbers, you can engage — but make them work for it`,
+    traps:["You'll feel pressure to justify the price","You'll start comparing features defensively","You'll offer a discount to keep them engaged","You'll avoid the price question which makes you look evasive"]
+  },
+  {
+    id:"internal-politician", name:"The Internal Politician", icon:"🏛️", color:"#6F42C1",
+    skills:["Deal anatomy","Power dynamics"],
+    profile:"Concerned about stakeholders. Vague about process. Delays decisions. Uses consensus as a shield against commitment.",
+    behavior:`You are a Director of IT at a 500-person company. You like this solution but you're terrified of making the wrong call. Three stakeholders need to approve: your CTO (technical), CFO (budget), and the VP of Sales (end user). You don't want to champion this alone.
+
+YOUR BEHAVIOR RULES:
+- Be positive but non-committal: "This looks promising" "I think there could be a fit"
+- When asked about next steps, add complexity: "I'd need to run it by [person]" "There's a process we follow" "We'd need to get alignment first"
+- Be vague about the process: "It depends" "These things take time" "We're still figuring out our evaluation criteria"
+- If asked who the decision-maker is, spread it: "It's really a group decision" "Everyone would need to be comfortable"
+- If asked to set up a meeting with stakeholders, hesitate: "Let me see what their calendars look like" "I need to prep them first"
+- NEVER commit to a specific next step with a date and named person
+- If the rep asks about each stakeholder's specific concerns, you can give some detail — this is the right question
+- If the rep offers to help you build an internal business case, you're interested but still cautious
+- Your real fear is looking bad if this doesn't work out, but you'll never say that directly`,
+    traps:["You'll accept 'I need to check with my team' as a reasonable next step","You'll avoid asking who specifically decides what","You'll let them control the timeline with vague promises","You'll mistake their politeness for progress"]
+  },
+  {
+    id:"not-a-priority", name:"The 'Not a Priority Right Now'", icon:"⏳", color:"#17A2B8",
+    skills:["Timing diagnosis","Non-neediness"],
+    profile:"Acknowledges the problem. Says timing is bad. Pushes to future. Uses 'next quarter' as a polite rejection.",
+    behavior:`You are a Head of Revenue at a mid-market SaaS company. You know you have the problem this product solves. You've even complained about it internally. But you have three other priorities that your board is tracking, and this isn't one of them.
+
+YOUR BEHAVIOR RULES:
+- Acknowledge the problem openly: "Yeah, we definitely have that issue" "It's on our radar"
+- Immediately deprioritize: "But right now we're focused on [other thing]" "It's a Q3/Q4 conversation"
+- If asked what happens if you don't fix it, minimize: "We'll manage" "It's not ideal but it's not critical"
+- If asked about the cost of delay, be vague: "Hard to quantify" "It's one of many things"
+- Your deflection phrase: "Can you reach back out next quarter?"
+- If the rep accepts the timing and offers to follow up later, you'll agree and then ghost
+- If the rep genuinely surfaces a consequence you haven't considered — something specific that connects to your board-tracked priorities — you pause and engage
+- NEVER create urgency yourself. The rep must surface it through diagnosis.
+- If the rep pushes too hard on urgency, you shut down: "I appreciate it but the timing just isn't right"
+- If the rep calmly accepts your timeline but asks one sharp question about downstream impact, you respect that`,
+    traps:["You'll accept 'next quarter' as a real timeline","You'll try to create urgency they haven't expressed","You'll pitch harder to overcome the timing objection","You'll book a follow-up that will never happen"]
+  }
+];
+
+const SUGGESTED_RULES = [
+  "If they hesitate, I wait 3 seconds before speaking",
+  "If I hear curiosity without consequence, I test ownership",
+  "If they say 'send info', I disqualify before agreeing",
+  "If interest appears, I slow down instead of speeding up",
+  "If they mention price, I ask about the cost of inaction first",
+  "If they push for next steps, I ask what problem we're solving first",
+  "If answers are vague, I narrow with a specific yes/no question",
+  "If they defer to others, I ask who specifically owns the downside",
+  "If I feel the urge to explain, I ask a question instead",
+  "If they say timing is bad, I test consequence of delay once then accept or disqualify"
+];
+
+// ─── STATE ───
+let state = {
+  selectedArchetype: null,
+  todayRule: "",
+  repNumber: 1,
+  repNotes: { 1:"", 2:"", 3:"" },
+  postMortemNote: "",
+  currentPrompt: "",
+  currentPhase: "select",
+  previousPhase: null
+};
+
+// ─── STORAGE ───
+function loadData(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+  catch { return fallback; }
+}
+function saveData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+let ledgerEntries = loadData("od_ledger", []);
+let sessions = loadData("od_sessions", []);
+
+// ─── HELPERS ───
+function getArchetype() { return ARCHETYPES.find(a => a.id === state.selectedArchetype); }
+function getWeek() { return Math.min(12, Math.ceil((sessions.length + 1) / 5)); }
+
+function updateCounts() {
+  document.getElementById("sessionCount").textContent = sessions.length;
+  document.getElementById("ledgerCount").textContent = ledgerEntries.length;
+  document.getElementById("weekDisplay").textContent = getWeek();
+}
+
+function showPhase(phase) {
+  const allPhases = ["phase-select","phase-rule","phase-brief","phase-roleplay","phase-postmortem","phase-ledger","phase-complete","page-ledger","page-history"];
+  allPhases.forEach(id => document.getElementById(id).classList.add("hidden"));
+  document.getElementById(phase).classList.remove("hidden");
+  state.currentPhase = phase;
+  window.scrollTo(0, 0);
+}
+
+function generatePrompt(arch, rule, rep) {
+  const isRerun = rep === "rerun";
+  const repLabel = isRerun ? "CLEAN REP (Final)" : `REP ${rep} OF 3`;
+  let repInstruction;
+  if (isRerun) repInstruction = "This is my CLEAN REP. I've already failed and identified my pattern. Test me harder than the previous reps. If I run this one clean, end with [CLEAN REP — Rule held]. If I break, flag it as before.";
+  else if (rep === 1) repInstruction = "This is Rep 1. I will likely fail. Let me. The goal is to surface where the failure happens.";
+  else if (rep === 2) repInstruction = "This is Rep 2. I've already failed once and identified my pattern. Test the same pressure point again. I should handle it better this time.";
+  else repInstruction = "This is Rep 3. Push harder than Rep 1 and 2. Combine pressure points. I should be able to hold my rule under maximum difficulty.";
+
+  return `## ROLEPLAY SESSION — ${repLabel}
+### Archetype: ${arch.name}
+### Today's Decision Rule: "${rule}"
+
+---
+
+**YOUR ROLE:** ${arch.profile}
+
+**FULL BEHAVIORAL INSTRUCTIONS:**
+${arch.behavior}
+
+---
+
+**SESSION RULES FOR THE AI:**
+
+1. Stay in character completely. Do not break character to help, coach, or encourage me.
+
+2. **REAL-TIME FAILURE DETECTION:** If I violate my decision rule ("${rule}"), you must:
+   - Stay in character BUT add a brief narrator interruption in [square brackets]
+   - Format: [RULE BREAK: You just did X instead of Y. Your rule says: "${rule}"]
+   - Then continue the conversation in character as if the interruption didn't happen
+
+3. **FLAG THESE VIOLATIONS specifically:**
+   - If I explain for more than 2 sentences without asking a question → [RULE BREAK: Over-explaining]
+   - If I pitch features unprompted → [RULE BREAK: Pitching without diagnosis]
+   - If I chase agreement or approval → [RULE BREAK: Chasing]
+   - If I accept a vague answer without narrowing → [RULE BREAK: Accepted vagueness]
+   - If I match the prospect's energy instead of controlling pace → [RULE BREAK: Lost control of pace]
+
+4. Do NOT make it easy for me. Do NOT volunteer information. Do NOT help me succeed.
+
+5. ${repInstruction}
+
+---
+
+**START THE SCENE:**
+You [the prospect] have just picked up a cold call. Open with something natural — a slightly distracted greeting. I [the rep] will speak first.
+
+Begin.`;
+}
+
+function generatePMPrompt(arch, rule, notes) {
+  return `## POST-MORTEM ANALYSIS
+
+I just completed a roleplay session as an SDR against "${arch.name}".
+
+**My decision rule was:** "${rule}"
+
+**My notes from the reps:**
+${Object.entries(notes).map(([rep, note]) => `Rep ${rep}: ${note || "(no notes)"}`).join("\n")}
+
+**Analyze this session. Answer ONLY these five questions:**
+
+1. **OUTCOME:** Did I hold my rule or break it? Be specific about which rep and where.
+
+2. **WRONG ASSUMPTION:** What did I assume about the prospect that turned out to be wrong? What signal led me to that wrong assumption?
+
+3. **ACTUAL DRIVER:** What was actually driving the prospect's behavior that I missed or misread?
+
+4. **LEVERAGE MOMENT:** Was there a specific moment where the right question or the right silence would have changed the dynamic? What was it?
+
+5. **CORRECTIVE RULE:** Based on this session, write me ONE new decision rule or refinement of my existing rule. Format: "If [trigger], then [action]."
+
+**Then write me a single-sentence mistake ledger entry.** Format: "I [what I did wrong] when I should have [what the rule demanded]."
+
+Do not sugarcoat. Do not encourage. Diagnose.`;
+}
+
+function copyText(text, btnId) {
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    btn.textContent = "✓ COPIED";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "COPY PROMPT"; btn.classList.remove("copied"); }, 2000);
+  });
+}
+
+// ─── RENDER FUNCTIONS ───
+
+function renderArchetypes() {
+  const grid = document.getElementById("archetypeGrid");
+  grid.innerHTML = ARCHETYPES.map(a => `
+    <button class="arch-card" data-id="${a.id}" style="border-color:var(--border)" 
+      onmouseenter="this.style.borderColor='${a.color}';this.style.background='var(--surface2)'"
+      onmouseleave="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+      <div class="arch-card-header">
+        <span class="arch-icon">${a.icon}</span>
+        <span class="arch-name">${a.name}</span>
+      </div>
+      <div class="arch-profile">${a.profile}</div>
+      <div class="arch-skills">
+        ${a.skills.map(s => `<span class="arch-skill" style="color:${a.color};background:${a.color}15">${s}</span>`).join("")}
+      </div>
+    </button>
+  `).join("");
+
+  grid.querySelectorAll(".arch-card").forEach(card => {
+    card.addEventListener("click", () => {
+      state.selectedArchetype = card.dataset.id;
+      const arch = getArchetype();
+      document.getElementById("ruleArchName").textContent = arch.name;
+      document.getElementById("ruleArchName").style.color = arch.color;
+      showPhase("phase-rule");
+    });
+  });
+}
+
+function renderSuggestedRules() {
+  const container = document.getElementById("suggestedRules");
+  container.innerHTML = SUGGESTED_RULES.map(r => `
+    <button class="rule-option">${r}</button>
+  `).join("");
+  container.querySelectorAll(".rule-option").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("ruleInput").value = btn.textContent;
+      state.todayRule = btn.textContent;
+      document.getElementById("lockRuleBtn").classList.remove("hidden");
+      container.querySelectorAll(".rule-option").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+    });
+  });
+}
+
+function renderBrief() {
+  const arch = getArchetype();
+  document.getElementById("briefIcon").textContent = arch.icon;
+  document.getElementById("briefName").textContent = arch.name;
+  document.getElementById("briefName").style.color = arch.color;
+  document.getElementById("briefSub").textContent = `Rep ${state.repNumber} of 3 · Then clean rep`;
+  document.getElementById("briefRule").textContent = state.todayRule;
+  document.getElementById("briefTraps").innerHTML = arch.traps.map(t => `<div class="trap-item">→ ${t}</div>`).join("");
+  const btn = document.getElementById("genRepBtn");
+  btn.textContent = `GENERATE REP ${state.repNumber} PROMPT →`;
+  btn.style.background = arch.color;
+}
+
+function renderRoleplay() {
+  const arch = getArchetype();
+  const isClean = state.repNumber > 3;
+  document.getElementById("repLabel").textContent = isClean ? "CLEAN REP" : `REP ${state.repNumber} OF 3`;
+  document.getElementById("repArch").innerHTML = `${arch.icon} ${arch.name}`;
+  document.getElementById("repArch").style.color = arch.color;
+  document.getElementById("promptContent").textContent = state.currentPrompt;
+  document.getElementById("repNotes").value = state.repNotes[state.repNumber] || "";
+
+  const btnRow = document.getElementById("repButtons");
+  if (state.repNumber < 3) {
+    btnRow.innerHTML = `<button class="btn" id="nextRepBtn" style="background:${arch.color}">NEXT REP (${state.repNumber + 1}/3) →</button>`;
+    document.getElementById("nextRepBtn").addEventListener("click", () => {
+      state.repNotes[state.repNumber] = document.getElementById("repNotes").value;
+      state.repNumber++;
+      state.currentPrompt = generatePrompt(arch, state.todayRule, state.repNumber);
+      renderRoleplay();
+    });
+  } else if (state.repNumber === 3) {
+    btnRow.innerHTML = `<button class="btn" id="toPMBtn" style="background:var(--red)">POST-MORTEM →</button>`;
+    document.getElementById("toPMBtn").addEventListener("click", () => {
+      state.repNotes[state.repNumber] = document.getElementById("repNotes").value;
+      renderPostMortem();
+      showPhase("phase-postmortem");
+    });
+  } else {
+    btnRow.innerHTML = `<button class="btn" id="finishBtn" style="background:var(--green)">FINISH SESSION →</button>`;
+    document.getElementById("finishBtn").addEventListener("click", () => {
+      showPhase("phase-ledger");
+    });
+  }
+}
+
+function renderPostMortem() {
+  const arch = getArchetype();
+  const pmText = generatePMPrompt(arch, state.todayRule, state.repNotes);
+  document.getElementById("pmContent").textContent = pmText;
+}
+
+function renderLedgerPage() {
+  const list = document.getElementById("ledgerList");
+  if (ledgerEntries.length === 0) {
+    list.innerHTML = '<div class="empty-msg">No entries yet. Complete your first session.</div>';
+    return;
+  }
+  list.innerHTML = ledgerEntries.map(e => `
+    <div class="ledger-entry">
+      <div class="ledger-text">${escapeHTML(e.text)}</div>
+      <div class="ledger-meta">
+        <span>${e.date}</span>
+        <span>vs ${escapeHTML(e.archetype)}</span>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderHistoryPage() {
+  document.getElementById("historySubline").textContent = `${sessions.length} session${sessions.length !== 1 ? "s" : ""} completed · Week ${getWeek()} of 12`;
+  const list = document.getElementById("historyList");
+  if (sessions.length === 0) {
+    list.innerHTML = '<div class="empty-msg">No sessions yet.</div>';
+    return;
+  }
+  list.innerHTML = sessions.map(s => `
+    <div class="session-entry">
+      <div class="session-header">
+        <span class="session-arch">${escapeHTML(s.archetype)}</span>
+        <span class="session-date">${s.date}</span>
+      </div>
+      <div class="session-rule">Rule: ${escapeHTML(s.rule)}</div>
+      ${s.postMortem ? `<div class="session-pm">${escapeHTML(s.postMortem)}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+function escapeHTML(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function addLedgerEntry(text, archName, rule) {
+  if (!text.trim()) return;
+  ledgerEntries.unshift({ text: text.trim(), date: new Date().toLocaleDateString(), archetype: archName || "General", rule: rule || "" });
+  saveData("od_ledger", ledgerEntries);
+  updateCounts();
+}
+
+function completeSession() {
+  const arch = getArchetype();
+  sessions.unshift({
+    date: new Date().toLocaleDateString(),
+    archetype: arch.name,
+    rule: state.todayRule,
+    notes: { ...state.repNotes },
+    postMortem: state.postMortemNote
+  });
+  saveData("od_sessions", sessions);
+  updateCounts();
+
+  const week = getWeek();
+  document.getElementById("completeSub").textContent = `Session ${sessions.length} · Week ${week} of 12`;
+  const remaining = 5 - (sessions.length % 5);
+  document.getElementById("completeDetail").textContent = sessions.length % 5 === 0
+    ? `Week ${week} complete. ${12 - week} weeks remaining.`
+    : `${remaining} session${remaining !== 1 ? "s" : ""} until you finish week ${week}.`;
+  showPhase("phase-complete");
+}
+
+function resetState() {
+  state = {
+    selectedArchetype: null,
+    todayRule: "",
+    repNumber: 1,
+    repNotes: { 1:"", 2:"", 3:"" },
+    postMortemNote: "",
+    currentPrompt: "",
+    currentPhase: "select",
+    previousPhase: null
+  };
+  document.getElementById("ruleInput").value = "";
+  document.getElementById("repNotes").value = "";
+  document.getElementById("pmNotes").value = "";
+  document.getElementById("ledgerEntryInput").value = "";
+  document.getElementById("lockRuleBtn").classList.add("hidden");
+  document.getElementById("suggestedRules").classList.add("hidden");
+  showPhase("phase-select");
+}
+
+// ─── EVENT LISTENERS ───
+
+// Header buttons
+document.getElementById("ledgerBtn").addEventListener("click", () => {
+  state.previousPhase = state.currentPhase;
+  renderLedgerPage();
+  showPhase("page-ledger");
+});
+document.getElementById("historyBtn").addEventListener("click", () => {
+  state.previousPhase = state.currentPhase;
+  renderHistoryPage();
+  showPhase("page-history");
+});
+document.getElementById("backFromLedger").addEventListener("click", () => {
+  showPhase(state.previousPhase || "phase-select");
+});
+document.getElementById("backFromHistory").addEventListener("click", () => {
+  showPhase(state.previousPhase || "phase-select");
+});
+
+// Rule phase
+document.getElementById("backToSelect").addEventListener("click", () => showPhase("phase-select"));
+document.getElementById("ruleInput").addEventListener("input", (e) => {
+  state.todayRule = e.target.value;
+  document.getElementById("lockRuleBtn").classList.toggle("hidden", !e.target.value.trim());
+});
+document.getElementById("toggleRules").addEventListener("click", () => {
+  const el = document.getElementById("suggestedRules");
+  const btn = document.getElementById("toggleRules");
+  el.classList.toggle("hidden");
+  btn.textContent = el.classList.contains("hidden") ? "Show suggested rules ↓" : "Hide suggested rules ↑";
+});
+document.getElementById("lockRuleBtn").addEventListener("click", () => {
+  if (!state.todayRule.trim()) return;
+  const arch = getArchetype();
+  document.getElementById("lockRuleBtn").style.background = arch.color;
+  renderBrief();
+  showPhase("phase-brief");
+});
+
+// Brief phase
+document.getElementById("genRepBtn").addEventListener("click", () => {
+  const arch = getArchetype();
+  state.currentPrompt = generatePrompt(arch, state.todayRule, state.repNumber);
+  renderRoleplay();
+  showPhase("phase-roleplay");
+});
+
+// Copy buttons
+document.getElementById("copyPromptBtn").addEventListener("click", () => {
+  copyText(state.currentPrompt, "copyPromptBtn");
+});
+document.getElementById("copyPMBtn").addEventListener("click", () => {
+  const arch = getArchetype();
+  copyText(generatePMPrompt(arch, state.todayRule, state.repNotes), "copyPMBtn");
+});
+
+// Postmortem
+document.getElementById("genCleanBtn").addEventListener("click", () => {
+  state.postMortemNote = document.getElementById("pmNotes").value;
+  const arch = getArchetype();
+  state.repNumber = 4;
+  state.currentPrompt = generatePrompt(arch, state.todayRule, "rerun");
+  renderRoleplay();
+  showPhase("phase-roleplay");
+});
+
+// Ledger entry phase
+document.getElementById("completeBtn").addEventListener("click", () => {
+  const val = document.getElementById("ledgerEntryInput").value;
+  const arch = getArchetype();
+  if (val.trim()) addLedgerEntry(val, arch.name, state.todayRule);
+  completeSession();
+});
+
+// Complete phase
+document.getElementById("newSessionBtn").addEventListener("click", resetState);
+document.getElementById("reviewLedgerBtn").addEventListener("click", () => {
+  state.previousPhase = "phase-complete";
+  renderLedgerPage();
+  showPhase("page-ledger");
+});
+
+// Ledger page add
+document.getElementById("ledgerAddBtn").addEventListener("click", () => {
+  const input = document.getElementById("ledgerAddInput");
+  if (input.value.trim()) {
+    addLedgerEntry(input.value, "Manual", "");
+    input.value = "";
+    renderLedgerPage();
+  }
+});
+document.getElementById("ledgerAddInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") document.getElementById("ledgerAddBtn").click();
+});
+
+// ─── INIT ───
+renderArchetypes();
+renderSuggestedRules();
+updateCounts();
+</script>
+</body>
+</html>
